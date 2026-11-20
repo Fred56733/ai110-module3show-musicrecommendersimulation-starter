@@ -41,7 +41,7 @@ Real-world platforms like Spotify and YouTube predict what you'll love next by c
 | `likes_acoustic` | bool | Whether the user prefers acoustic or electronic-sounding tracks |
 | `target_valence` *(optional, planned)* | float (0–1) | How happy (high) or dark (low) the user wants the music |
 
-### Algorithm Recipe
+### Algorithm Recipe (Finalized)
 
 **Scoring rule (one song).** Each song earns points for how well it matches the taste profile. The maximum is **6.5**.
 
@@ -62,6 +62,15 @@ If the user leaves out a preference, that rule is skipped. Every rule that award
 - **Genre (+2.0) is worth more than mood (+1.0).** Genre describes the overall sound, while mood labels are more subjective. In this dataset, "focused" and "chill" songs have almost identical numbers.
 - **Genre is no stronger than energy (max +2.0).** I tested a user who likes *pop* but wants *calm* music (energy 0.4). With genre at +4.0, the system recommended high-energy pop (*Sunrise City*, *Gym Hero*), which ignores the vibe the user asked for. With genre at +2.0, calm songs ranked first and the closest pop song dropped to #4. Keeping genre equal to energy means a genre label can't override how a song feels.
 - **Mood isn't raised above genre.** Doubling mood to +2.0 pushed *Gym Hero* (an upbeat pop song labeled "intense") even higher for a rock fan. Exact mood labels are too unreliable to carry more weight.
+
+### Expected Biases
+
+- **Genre can outweigh mood.** A genre match is worth twice as much as a mood match, so the system might rank a same-genre song with the wrong mood above a great song that matches the user's mood. For a chill lofi fan, *Focus Flow* (lofi, "focused") is expected to outrank *Spacewalk Thoughts* (ambient, "chill"), even though Spacewalk is the better mood match.
+- **Exact labels miss near-synonyms.** "chill" gets no credit for "relaxed", and "sad" gets none for "melancholic". A label can also be misleading: *Gym Hero* is an upbeat pop song, but its "intense" label could push it near the top for a rock fan.
+- **Popular genres get better lists.** Lofi has 3 songs and pop has 2, but 13 genres have only one song. Users who like a rare genre (like metal or jazz) get one genre match, and the rest of their list is filled by energy alone.
+- **Everything is reduced to intensity.** Energy is also standing in for tempo, danceability and acousticness, so songs that feel very different but share an energy level (*Pulse Theory*, edm, euphoric; *Iron Cathedral*, metal, angry) can look similar to the system.
+- **No variety or discovery.** The system always recommends the closest matches. It has no diversity rule, so it can repeat the same artist (two LoRoom songs for a lofi fan) and keeps users in their current "bubble".
+- **Subjective data.** The genre and mood labels and the 0–1 values were assigned by hand, so they reflect one person's judgment of a song's vibe and may not match how other listeners hear it.
 
 ---
 
