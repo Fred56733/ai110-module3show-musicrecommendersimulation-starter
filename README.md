@@ -11,7 +11,7 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+**VibeMatch 1.0** is a command-line, content-based music recommender. It loads a catalog of 20 songs from `data/songs.csv`. It compares each song with a user's taste profile (favorite genre and mood, target energy and valence, and whether they like acoustic music) and gives it a score. It then prints the top 5 matches, each with a plain-language list of the reasons it was chosen. The project also tests the system with 11 user profiles, including 7 "adversarial" edge cases, runs a weight-sensitivity experiment, and documents where the scoring is biased or can be tricked.
 
 ---
 
@@ -39,7 +39,7 @@ Real-world platforms like Spotify and YouTube predict what you'll love next by c
 | `favorite_mood` | string | The mood the user wants the music to match |
 | `target_energy` | float (0–1) | How calm (low) or intense (high) the user wants the music |
 | `likes_acoustic` | bool | Whether the user prefers acoustic or electronic-sounding tracks |
-| `target_valence` *(optional, planned)* | float (0–1) | How happy (high) or dark (low) the user wants the music |
+| `target_valence` *(optional)* | float (0–1) | How happy (high) or dark (low) the user wants the music |
 
 ### Algorithm Recipe (Finalized)
 
@@ -99,11 +99,13 @@ python -m src.main
 
 ### Running Tests
 
-Run the starter tests with:
+Run the tests with:
 
 ```bash
-pytest
+python3 -m pytest
 ```
+
+(Plain `pytest` also works if it's on your PATH. On macOS, `python3 -m pytest` is the most reliable.)
 
 You can add more tests in `tests/test_recommender.py`.
 
@@ -188,15 +190,14 @@ Another profile can be run by name, e.g. `python -m src.main "chill lofi"`.
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+- **Tiny, hand-labeled catalog.** There are only 20 songs, and 14 of the 17 genres have just one song. Fans of rare genres get one genre match, and the rest of their list is chosen by energy alone.
+- **Labels can beat the actual sound.** Genre + mood are worth up to 3.0 points, while energy is worth at most 2.0. A user who asks for "sad folk" but high energy gets a quiet folk song at #1.
+- **Exact text matching.** "chill" gets no credit for "relaxed", and the "intense" label puts the upbeat pop song *Gym Hero* in the top 5 for 7 of 11 test profiles.
+- **No understanding of lyrics, language, artists or context.** The system only sees a few numbers and labels per song, so it can't tell a workout anthem from a feel-good song if their numbers are similar.
+- **No variety or discovery.** It always picks the closest matches, so it can repeat the same artist and keep users in a filter bubble.
+- **No input checks.** Out-of-range values and empty profiles are accepted silently. An empty profile returns songs in alphabetical order.
 
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+See the [model card](model_card.md) for the full evaluation and bias analysis.
 
 ---
 
