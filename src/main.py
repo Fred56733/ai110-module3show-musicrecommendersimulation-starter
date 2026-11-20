@@ -4,6 +4,7 @@ Command line runner for the Music Recommender Simulation.
 Usage:
     python -m src.main                 # default "pop/happy" profile
     python -m src.main "chill lofi"    # any profile name from PROFILES
+    python -m src.main --all           # every profile, one after another
 """
 
 import sys
@@ -30,6 +31,68 @@ PROFILES = {
         "target_valence": 0.60,     # up to +1.0 for closeness (0.0 dark -> 1.0 happy)
         "likes_acoustic": True,     # +0.5 if the song's acousticness >= 0.5
     },
+    # Workout / party listener: loud, bright, electronic pop.
+    "high-energy pop": {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.92,
+        "target_valence": 0.85,
+        "likes_acoustic": False,
+    },
+    # Heavy, dark, driving rock.
+    "deep intense rock": {
+        "favorite_genre": "rock",
+        "favorite_mood": "intense",
+        "target_energy": 0.90,
+        "target_valence": 0.35,
+        "likes_acoustic": False,
+    },
+
+    # --- Adversarial / edge-case profiles (System Evaluation) ---
+    # Conflict: labels say quiet sad folk, numbers say loud and intense.
+    "conflict: high-energy sad": {
+        "favorite_genre": "folk",
+        "favorite_mood": "sad",
+        "target_energy": 0.90,
+        "target_valence": 0.20,
+    },
+    # Conflict: labels say happy pop, numbers say very calm and dark.
+    "conflict: labels vs numbers": {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.10,
+        "target_valence": 0.10,
+        "likes_acoustic": True,
+    },
+    # Unusual combo: metal fan who prefers acoustic sound.
+    "acoustic metalhead": {
+        "favorite_genre": "metal",
+        "favorite_mood": "angry",
+        "target_energy": 0.95,
+        "target_valence": 0.20,
+        "likes_acoustic": True,
+    },
+    # Genre that doesn't exist in the catalog.
+    "ghost genre (k-pop)": {
+        "favorite_genre": "k-pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.80,
+    },
+    # Messy input: wrong capitalization and stray spaces.
+    "messy input": {
+        "favorite_genre": " LOFI ",
+        "favorite_mood": "Chill",
+        "target_energy": 0.38,
+    },
+    # Invalid numbers outside the 0.0-1.0 range.
+    "out-of-range values": {
+        "favorite_genre": "edm",
+        "favorite_mood": "euphoric",
+        "target_energy": 1.50,
+        "target_valence": -0.50,
+    },
+    # No preferences at all.
+    "empty profile": {},
 }
 DEFAULT_PROFILE = "pop/happy"
 
@@ -59,7 +122,7 @@ def print_recommendations(profile_name: str, user_prefs: dict, recommendations: 
 
     print()
     print(f"Profile: {profile_name}")
-    print(f"  {format_profile(user_prefs)}")
+    print(f"  {format_profile(user_prefs) or '(no preferences)'}")
     print()
     print(f"Top {len(recommendations)} recommendations")
     print("=" * WIDTH)
@@ -68,23 +131,28 @@ def print_recommendations(profile_name: str, user_prefs: dict, recommendations: 
         score_text = f"Score: {score:.2f} / {max_score:.2f}"
         print(f"{title:<{WIDTH - len(score_text)}}{score_text}")
         print(f"     {song['genre']}, {song['mood']}, energy {song['energy']:.2f}")
-        for reason in explanation.split("; "):
+        for reason in explanation.split("; ") if explanation else ["(no matching rules)"]:
             print(f"     + {reason}")
         print("-" * WIDTH)
 
 
 def main() -> None:
-    profile_name = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PROFILE
-    if profile_name not in PROFILES:
-        print(f"Unknown profile '{profile_name}'. Choose one of: {', '.join(PROFILES)}")
+    arg = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PROFILE
+    if arg == "--all":
+        profile_names = list(PROFILES)
+    elif arg in PROFILES:
+        profile_names = [arg]
+    else:
+        print(f"Unknown profile '{arg}'. Choose --all or one of: {', '.join(PROFILES)}")
         sys.exit(1)
-    user_prefs = PROFILES[profile_name]
 
     songs = load_songs("data/songs.csv")
     print(f"Loaded songs: {len(songs)}")
 
-    recommendations = recommend_songs(user_prefs, songs, k=5)
-    print_recommendations(profile_name, user_prefs, recommendations)
+    for profile_name in profile_names:
+        user_prefs = PROFILES[profile_name]
+        recommendations = recommend_songs(user_prefs, songs, k=5)
+        print_recommendations(profile_name, user_prefs, recommendations)
 
 
 if __name__ == "__main__":
