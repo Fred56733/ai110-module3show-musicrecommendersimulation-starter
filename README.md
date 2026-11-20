@@ -41,6 +41,28 @@ Real-world platforms like Spotify and YouTube predict what you'll love next by c
 | `likes_acoustic` | bool | Whether the user prefers acoustic or electronic-sounding tracks |
 | `target_valence` *(optional, planned)* | float (0–1) | How happy (high) or dark (low) the user wants the music |
 
+### Algorithm Recipe
+
+**Scoring rule (one song).** Each song earns points for how well it matches the taste profile. The maximum is **6.5**.
+
+| Rule | Points |
+|---|---|
+| Genre: exact match | **+2.0** |
+| Genre: partial match (e.g. `pop` inside `indie pop`) | +1.0 |
+| Mood: exact match | **+1.0** |
+| Energy closeness: `2.0 × (1 − abs(song.energy − target_energy))` | 0 – 2.0 |
+| Valence closeness: `1.0 × (1 − abs(song.valence − target_valence))` (only if the user sets a target) | 0 – 1.0 |
+| Acoustic match: song's `acousticness ≥ 0.5` matches `likes_acoustic` | +0.5 |
+
+If the user leaves out a preference, that rule is skipped. Every rule that awards points also adds a short reason, such as "genre match: lofi (+2.0)". These reasons become the explanation shown with each recommendation.
+
+**Ranking rule (the list).** Score every song, sort from highest to lowest score, break ties by energy closeness and then by title, and return the top `k`.
+
+**Why these weights?**
+- **Genre (+2.0) is worth more than mood (+1.0).** Genre describes the overall sound, while mood labels are more subjective. In this dataset, "focused" and "chill" songs have almost identical numbers.
+- **Genre is no stronger than energy (max +2.0).** I tested a user who likes *pop* but wants *calm* music (energy 0.4). With genre at +4.0, the system recommended high-energy pop (*Sunrise City*, *Gym Hero*), which ignores the vibe the user asked for. With genre at +2.0, calm songs ranked first and the closest pop song dropped to #4. Keeping genre equal to energy means a genre label can't override how a song feels.
+- **Mood isn't raised above genre.** Doubling mood to +2.0 pushed *Gym Hero* (an upbeat pop song labeled "intense") even higher for a rock fan. Exact mood labels are too unreliable to carry more weight.
+
 ---
 
 ## Getting Started
