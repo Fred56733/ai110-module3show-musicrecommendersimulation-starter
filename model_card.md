@@ -8,9 +8,18 @@
 
 ## 2. Intended Use  
 
-VibeMatch suggests the top 5 songs from a small catalog that best match one listener's taste profile, and explains why it chose each one. It assumes the user can describe their taste with one favorite genre, one favorite mood, a target energy level, and optionally a target "happiness" level (valence) and whether they like acoustic music. It also assumes that taste stays the same in every situation (studying, working out, driving).
+**Goal / task:** VibeMatch predicts which songs a listener will like best. It picks the top 5 songs from a small catalog that match the listener's taste profile and explains why it chose each one.
 
-It was built **for classroom exploration**, to learn how recommender systems turn data into predictions and where they can go wrong. It is **not intended for real users**. The catalog is tiny and made up, and the system has no listening history, no input checks and no way to learn from feedback.
+**Assumptions about the user:** They can describe their taste with one favorite genre, one favorite mood and a target energy level. Optionally, they can also give a target "happiness" level (valence) and say whether they like acoustic music. Their taste is assumed to stay the same in every situation (studying, working out, driving).
+
+**Intended use:**
+- Classroom exploration of how recommender systems turn data into predictions
+- Experimenting with scoring weights and testing for bias with made-up profiles
+
+**Not intended for:**
+- Real users or real music apps. The catalog is only 20 made-up songs.
+- Any decision that matters. There are no input checks, no listening history and no way to learn from feedback.
+- Judging real artists or genres. All labels and numbers were assigned by hand.
 
 ---
 
@@ -58,7 +67,14 @@ The judge adds up the points, sorts the songs from highest to lowest, and shows 
 
 ## 7. Evaluation  
 
-I tested the recommender with **3 standard profiles** (plus the default pop/happy profile shown in the README) and **7 adversarial or edge-case profiles**. The edge cases were suggested in a separate "System Evaluation" chat to see whether the scoring logic could be tricked. All profiles are defined in `src/main.py`. Run one with `python -m src.main "<profile name>"`, or all of them with `python -m src.main --all`. The outputs below are pasted directly from the terminal.
+**How I tested it:**
+1. **Profiles:** I ran **4 standard profiles** (pop/happy, chill lofi, high-energy pop, deep intense rock) and **7 adversarial or edge-case profiles**. I asked my AI assistant to suggest the edge cases so I could see whether the scoring could be tricked: conflicting preferences, a genre that isn't in the catalog, messy input, impossible values and an empty profile.
+2. **Comparisons:** I compared profiles in pairs to check whether the differences in their top 5 made sense (see "Comparing profiles side by side" below).
+3. **Gut check:** I compared the chill lofi results with my own taste.
+4. **Experiment:** I doubled the energy weight and halved the genre weight, then compared every profile's top 5 before and after. It fixed the contradictory profiles but let loud songs with the wrong mood into normal lists, so I kept the original weights. (Full details are in the README under "Experiments You Tried".)
+5. **Tests:** `python3 -m pytest` checks that the `Recommender` class ranks the matching song first and always returns an explanation.
+
+All profiles are defined in `src/main.py`. Run one with `python3 -m src.main "<profile name>"`, or all of them with `python3 -m src.main --all`. The outputs below are pasted directly from the terminal.
 
 | Profile | What it tests | Result |
 |---|---|---|
@@ -583,8 +599,10 @@ Top 5 recommendations
 
 ## 9. Personal Reflection  
 
-I learned that a recommender is mostly a scoring rule plus a ranking rule, and that small choices, like giving genre 2 points instead of 1, decide what a user actually sees. The most unexpected thing was how one song, *Gym Hero*, kept showing up for very different listeners, and how text labels like "folk" and "sad" could outvote what a song actually sounds like. Testing with strange and contradictory profiles on purpose was how most of the problems were found, including a bug where extra spaces in "LOFI" cost songs a full point.
+**Biggest learning moment:** I asked for loud, sad music and got a quiet folk song at #1. That's when I understood that a recommender doesn't "hear" anything. It's mostly a scoring rule plus a ranking rule, and small choices, like giving genre 2 points instead of 1, decide what a user actually sees. Two words in my profile ("folk" and "sad") outweighed the energy level I asked for. *Gym Hero* showing up for very different listeners came from the same problem.
 
-I did every step in one chat with an AI coding assistant. It was most useful for explaining concepts before any code was written, like collaborative vs. content-based filtering and why scoring by closeness works better than "higher is better." I still had to run things myself to check them. For example, the test command didn't work on my Mac until I used `python3 -m pytest`.
+**How AI helped, and when I had to double-check:** I did every step in one chat with an AI coding assistant. It was most useful for explaining concepts before any code was written, like collaborative vs. content-based filtering and why scoring by closeness works better than "higher is better." Testing with strange and contradictory profiles it suggested is how most of the problems were found, including a bug where extra spaces in "LOFI" cost songs a full point. I still had to run things myself to check them. The test command didn't work on my Mac until I used `python3 -m pytest`, and a set of commands it gave me failed because the `#` comments broke them in my terminal.
 
-Before this project I had never thought about how apps like Spotify pick songs. Now I can see that the "same stuff repeating" I notice in my own recommendations is probably what happens when a system keeps rewarding matches to what I already like.
+**How simple algorithms can still "feel" like recommendations:** The whole system is just adding up a few points per song, but the chill lofi list still felt right to me, like something a real app would give me. It surprised me that something so simple could feel personal. It also made me realize that the "same stuff repeating" I notice in my own recommendations is probably what happens when a system keeps rewarding matches to what I already like. Before this project, I had never thought about how apps like Spotify pick songs.
+
+**What I'd try next:** I'd group similar moods (like chill, relaxed and focused) so near-matches get partial credit, and I'd add a rule that allows only one song per artist in the top 5 to break the filter bubble. I'd also add more songs so every genre has more than one option.
