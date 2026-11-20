@@ -17,17 +17,29 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world platforms like Spotify and YouTube predict what you'll love next by combining two approaches. **Collaborative filtering** learns from the behavior of millions of users (likes, skips, playlist adds, watch time) and recommends what people with similar taste enjoyed. **Content-based filtering** looks at the attributes of the songs themselves (tempo, energy, mood, genre) and recommends tracks that sound like the ones you already like. Large platforms blend both, then use a ranking step to choose what you actually see. My version is a **content-based** recommender, because the dataset has song attributes but no listening history. It gives each song a score for how well it matches the user's taste: points for a genre match and a mood match, plus points for how *close* the song's energy is to the user's target. It rewards closeness, not just higher values. A ranking rule then sorts the scored songs and returns the top `k`. My version prioritizes **genre** and **energy** most heavily, because in this data energy also tracks tempo, danceability and acousticness. It prioritizes **mood** and **valence** next, and gives each recommendation a plain-language reason so the results are easy to explain.
 
-Some prompts to answer:
+### `Song` features
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+| Feature | Type | Role in the simulation |
+|---|---|---|
+| `id`, `title`, `artist` | int / string | Identify and display the song (not scored) |
+| `genre` | string | Scored: +2.0 for an exact match, +1.0 for a partial match (e.g. `pop` in `indie pop`) |
+| `mood` | string | Scored: +1.0 for an exact match |
+| `energy` | float (0–1) | Scored: up to +2.0 based on closeness to the user's target |
+| `valence` | float (0–1) | Scored: up to +1.0 based on closeness (only when the user sets a target) |
+| `acousticness` | float (0–1) | Scored: +0.5 if it matches the user's acoustic preference (acoustic = 0.5 or above) |
+| `tempo_bpm`, `danceability` | float | Stored but not scored; they closely follow `energy` in this dataset |
 
-You can include a simple diagram or bullet list if helpful.
+### `UserProfile` features
+
+| Feature | Type | What it represents |
+|---|---|---|
+| `favorite_genre` | string | The genre the user likes most |
+| `favorite_mood` | string | The mood the user wants the music to match |
+| `target_energy` | float (0–1) | How calm (low) or intense (high) the user wants the music |
+| `likes_acoustic` | bool | Whether the user prefers acoustic or electronic-sounding tracks |
+| `target_valence` *(optional, planned)* | float (0–1) | How happy (high) or dark (low) the user wants the music |
 
 ---
 
