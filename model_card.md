@@ -61,14 +61,7 @@ Prompts:
 
 ## 6. Limitations and Bias 
 
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
+**Weakness: fans of rare genres get worse recommendations, and fans of common genres get stuck in a bubble.** Lofi has 3 songs and pop has 2, but 14 of the 17 genres have only one song. A lofi fan can earn the +2.0 genre bonus three times in their top 5, while a metal or jazz fan earns it once and the other four slots are filled by energy alone. When I tested every genre against every mood and every energy target from 0.0 to 1.0, lofi fans averaged a top-5 score of 2.95 versus 2.22 for metal fans, about 33% higher for the same kind of request. The extra genre matches also create a filter bubble: the chill lofi profile got three lofi songs (two by the same artist, LoRoom) ahead of *Spacewalk Thoughts*, an ambient song that matched its "chill" mood exactly.
 
 ---
 
