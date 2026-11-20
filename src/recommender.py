@@ -147,7 +147,36 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tup
     """
     Functional implementation of the recommendation logic.
     Required by src/main.py
+
+    Ranking rule: score every song, sort by score (highest first), break ties by
+    energy closeness and then title, and return the top k as
+    (song_dict, score, explanation) where explanation joins the reasons with "; ".
     """
-    # TODO: Implement scoring and ranking logic
-    # Expected return format: (song_dict, score, explanation)
-    return []
+    target_energy = user_prefs.get("target_energy")
+
+    def energy_tiebreak(song: Dict) -> float:
+        return closeness(song["energy"], target_energy) if target_energy is not None else 0.0
+
+    scored = []
+    for song in songs:
+        score, reasons = score_song(user_prefs, song)
+        scored.append((song, score, "; ".join(reasons)))
+
+    scored.sort(key=lambda item: (-item[1], -energy_tiebreak(item[0]), item[0]["title"]))
+    return scored[:k]
+
+
+def max_possible_score(user_prefs: Dict) -> float:
+    """Highest score a song could earn for these preferences (only rules the user set count)."""
+    total = 0.0
+    if user_prefs.get("favorite_genre"):
+        total += GENRE_WEIGHT
+    if user_prefs.get("favorite_mood"):
+        total += MOOD_WEIGHT
+    if user_prefs.get("target_energy") is not None:
+        total += ENERGY_WEIGHT
+    if user_prefs.get("target_valence") is not None:
+        total += VALENCE_WEIGHT
+    if user_prefs.get("likes_acoustic") is not None:
+        total += ACOUSTIC_WEIGHT
+    return total
