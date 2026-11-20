@@ -158,11 +158,31 @@ Another profile can be run by name, e.g. `python -m src.main "chill lofi"`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+### Experiment 1: Weight shift (double energy, halve genre)
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+**Change:** `ENERGY_WEIGHT` 2.0 → **4.0**, `GENRE_WEIGHT` 2.0 → **1.0** (and partial genre 1.0 → 0.5). The maximum score rises from 6.5 to 7.5.
+
+**Checking the math:** `closeness()` still returns values from 0 to 1, and `max_possible_score()` reads the weight constants, so it updated automatically. I checked that every song's score for all 11 profiles stays between 0 and the maximum, that a perfect match scores exactly 7.5, and that the "+points" in each reason still add up to the total score.
+
+**Results** (top 5 before → after, from `python -m src.main --all`):
+
+| Profile | Before (baseline) | After (experiment) | Verdict |
+|---|---|---|---|
+| pop/happy, chill lofi, messy input, ghost genre, out-of-range, empty | — | **Identical top 5** | No change |
+| conflict: labels vs numbers (pop/happy labels, energy 0.10, valence 0.10) | #1 *Sunrise City* (upbeat pop) | #1 *Winter Sonata No. 3*, then *Empty Train Home*, *Spacewalk Thoughts*: all calm and dark | **More accurate** |
+| conflict: high-energy sad (folk/sad labels, energy 0.90) | #1 *Empty Train Home* (energy 0.26) | #1 *Iron Cathedral* (energy 0.97, valence 0.21) | **More accurate** |
+| acoustic metalhead | #2 *Banjo Breakdown* (happy bluegrass) | #2 *Storm Runner* | **More accurate** |
+| high-energy pop | #5 *Fuego Lento* (latin, playful, valence 0.83) | #5 *Storm Runner* (rock, intense, valence 0.48) | **Less accurate**: a dark rock song in a happy pop list |
+| deep intense rock | #4 *Night Drive Loop* (moody) | #4 *Pulse Theory* (edm, euphoric, valence 0.88) | **Less accurate**: a euphoric edm song in a dark rock list |
+
+**More accurate or just different?** Both, depending on the profile:
+- **Conflicting profiles improved.** When labels and numbers disagree, the songs that *feel* like what the user asked for now win, instead of songs that only share a label.
+- **Normal profiles mostly stayed the same.** The top 3 didn't change for any standard profile, because the right songs win on labels *and* energy.
+- **The bottom of normal lists got worse.** With energy worth more than half the maximum score, any loud song can fill an empty slot, whatever its mood. A dark rock song now appears for a happy pop fan, and a euphoric edm song for a dark rock fan.
+- **Scores bunch together.** For "high-energy sad", the top 5 scores now span only 0.55 points (4.16–4.71) instead of 2.33. The system becomes less decisive because most loud songs look alike to it.
+- **It doesn't fix *Gym Hero*.** It is still #2 for deep intense rock, because that problem comes from its "intense" **mood** label, not the genre weight.
+
+**Decision:** I reverted to the baseline weights (genre 2.0, energy 2.0). The shift fixed the edge cases but made normal recommendations a bit worse. Real users more often have consistent preferences than conflicting ones. A better fix would be to use valence or mood families so that "loud" doesn't automatically mean "good match".
 
 ---
 
