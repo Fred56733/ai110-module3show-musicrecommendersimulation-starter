@@ -6,13 +6,11 @@ from dataclasses import dataclass
 INT_FIELDS = ("id",)
 FLOAT_FIELDS = ("energy", "tempo_bpm", "valence", "danceability", "acousticness")
 
-# Algorithm Recipe weights (see README "Algorithm Recipe").
-# EXPERIMENT (weight shift): energy doubled 2.0 -> 4.0, genre halved 2.0 -> 1.0
-# (partial genre halved 1.0 -> 0.5 to stay half of genre). Max total = 7.5 (was 6.5).
-GENRE_WEIGHT = 1.0          # exact genre match (baseline 2.0)
-PARTIAL_GENRE_WEIGHT = 0.5  # shared word, e.g. "pop" vs "indie pop" (baseline 1.0)
+# Algorithm Recipe weights (see README "Algorithm Recipe"). Max total = 6.5.
+GENRE_WEIGHT = 2.0          # exact genre match
+PARTIAL_GENRE_WEIGHT = 1.0  # shared word, e.g. "pop" vs "indie pop"
 MOOD_WEIGHT = 1.0           # exact mood match
-ENERGY_WEIGHT = 4.0         # max points for energy closeness (baseline 2.0)
+ENERGY_WEIGHT = 2.0         # max points for energy closeness
 VALENCE_WEIGHT = 1.0        # max points for valence closeness
 ACOUSTIC_WEIGHT = 0.5       # acoustic preference matches
 ACOUSTIC_THRESHOLD = 0.5    # acousticness >= this counts as "acoustic"
