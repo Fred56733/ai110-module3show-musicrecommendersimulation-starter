@@ -76,10 +76,13 @@ I tested the recommender with **3 standard profiles** (plus the default pop/happ
 
 ### What surprised me
 
-- **One song kept showing up everywhere.** *Gym Hero* appeared in the top 5 for 7 of my 11 profiles, including a dark-rock fan and a fan of "sad" music. (Explained below.)
-- **Changing the labels changed only one song.** "Deep intense rock" and "high-energy sad" ask for the same loud, dark sound, and **4 of their 5 results are the same songs**. Only #1 changed: "folk / sad" pulled in a quiet folk song that doesn't fit the requested energy at all.
-- **A typo-level mistake changed the results.** Typing `" LOFI "` instead of `"lofi"` quietly cost every lofi song a full point. I only caught it because I tested messy input on purpose.
+- **One song kept showing up everywhere.** *Gym Hero* appeared in the top 5 for 7 of my 11 profiles, including a dark-rock fan and a fan of "sad" music. I expected each profile to get its own set of songs. (Explained below.)
+- **Labels beat the vibe.** "Deep intense rock" and "high-energy sad" ask for the same loud, dark sound, and **4 of their 5 results are the same songs**. But "folk / sad" put a *quiet* folk song (energy 0.26) at #1 for a user who asked for energy 0.90. Two words in the profile outweighed the actual sound.
+
+**Other things I noticed:**
+- **A small input mistake changed the results.** Typing `" LOFI "` instead of `"lofi"` quietly cost every lofi song a full point, until it was fixed. It was only caught because we tested messy input on purpose.
 - **Big weight changes barely moved normal results.** Doubling the energy weight didn't change the top 3 for any normal profile. The weights mostly matter when a user's preferences contradict each other.
+- **Comparing with my own taste:** the **chill lofi** results feel right to me. All five are calm, acoustic songs I'd actually put on while studying.
 
 ### Why does *Gym Hero* keep showing up for people who just want "Happy Pop"?
 
@@ -580,10 +583,8 @@ Top 5 recommendations
 
 ## 9. Personal Reflection  
 
-A few sentences about your experience.  
+I learned that a recommender is mostly a scoring rule plus a ranking rule, and that small choices, like giving genre 2 points instead of 1, decide what a user actually sees. The most unexpected thing was how one song, *Gym Hero*, kept showing up for very different listeners, and how text labels like "folk" and "sad" could outvote what a song actually sounds like. Testing with strange and contradictory profiles on purpose was how most of the problems were found, including a bug where extra spaces in "LOFI" cost songs a full point.
 
-Prompts:  
+I did every step in one chat with an AI coding assistant. It was most useful for explaining concepts before any code was written, like collaborative vs. content-based filtering and why scoring by closeness works better than "higher is better." I still had to run things myself to check them. For example, the test command didn't work on my Mac until I used `python3 -m pytest`.
 
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+Before this project I had never thought about how apps like Spotify pick songs. Now I can see that the "same stuff repeating" I notice in my own recommendations is probably what happens when a system keeps rewarding matches to what I already like.

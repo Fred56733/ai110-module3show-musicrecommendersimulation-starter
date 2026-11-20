@@ -207,10 +207,9 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+Before this project I had never really thought about how Spotify or YouTube decide what to play next. It just seemed to know. Building VibeMatch showed me that a recommender comes down to two steps: a scoring rule that gives every song points for how well it matches me, and a ranking rule that sorts those scores and shows the top few. What helped me most was having the AI explain the ideas before writing any code: the difference between collaborative filtering (using other users' behavior) and content-based filtering (using song attributes), and why energy should be scored by how *close* it is to my target instead of "higher is better." Once I understood that, the recommendations stopped feeling like magic. Every one is just numbers and labels added up, and the "because" reasons show exactly which ones.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+What surprised me most was how much the labels control the results. *Gym Hero* showed up in 7 of my 11 test profiles just because it's labeled "pop" and "intense" and has very high energy. When I asked for loud, sad music, the system put a quiet folk song first because the words "folk" and "sad" were worth more points than the energy I asked for. That made me think about my own apps. I've noticed my recommendations keep repeating the same kind of stuff, and now I can see how that happens: if a system keeps rewarding matches to what I already like, it keeps showing me more of it. Bias can also come from the data itself. In my catalog lofi has three songs but most genres have only one, so lofi fans automatically got better recommendations than metal or jazz fans. A real app with millions of songs could have the same problem on a much bigger scale, favoring popular genres and keeping people in a bubble.
 
 
 
