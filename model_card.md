@@ -83,6 +83,45 @@ I tested the recommender with **3 standard profiles** (plus the default pop/happ
 | out-of-range values | energy 1.50 and valence -0.50 (valid range is 0.0-1.0). | ⚠️ no input checks |
 | empty profile | No preferences at all. | ⚠️ returns alphabetical songs |
 
+### What surprised me
+
+- **One song kept showing up everywhere.** *Gym Hero* appeared in the top 5 for 7 of my 11 profiles, including a dark-rock fan and a fan of "sad" music. (Explained below.)
+- **Changing the labels changed only one song.** "Deep intense rock" and "high-energy sad" ask for the same loud, dark sound, and **4 of their 5 results are the same songs**. Only #1 changed: "folk / sad" pulled in a quiet folk song that doesn't fit the requested energy at all.
+- **A typo-level mistake changed the results.** Typing `" LOFI "` instead of `"lofi"` quietly cost every lofi song a full point. I only caught it because I tested messy input on purpose.
+- **Big weight changes barely moved normal results.** Doubling the energy weight didn't change the top 3 for any normal profile. The weights mostly matter when a user's preferences contradict each other.
+
+### Why does *Gym Hero* keep showing up for people who just want "Happy Pop"?
+
+Think of the recommender as a judge holding a checklist rather than someone actually listening to the song. For a "happy pop" fan, the checklist asks: *Is it pop? Is it happy? Is its energy level close to what you asked for?* *Gym Hero* is filed under **pop**, which earns it the biggest prize (2 points). It's also one of the most energetic songs in the catalog (0.93 out of 1.0), so it earns almost full energy points for anyone who wants upbeat music. It only fails one item, because its mood label is "intense" rather than "happy". That's worth just 1 point, which isn't enough to push it out. The judge can't hear that *Gym Hero* is a workout anthem rather than a feel-good song. It only sees "pop + very high energy" and scores it well. The same reasons put it in the rock fan's list: there it matches the "intense" mood label and the high energy, even though it isn't rock. A song with a common genre, a common mood label and extreme energy ends up as a strong second choice for almost every high-energy listener.
+
+### Comparing profiles side by side
+
+**pop/happy vs. high-energy pop**: Same top 3 songs, but *Gym Hero* moves up from #3 to #2. The high-energy profile asks for energy 0.92 instead of 0.80, and *Gym Hero* (0.93) is the closest match. The bright edm song *Pulse Theory* also enters at #4 because this profile also asks for a happy sound (valence 0.85) and non-acoustic music. *This makes sense: turning up the energy dial rewards the loudest pop songs.*
+
+**pop/happy vs. chill lofi**: No songs in common at all. One asks for energy 0.80 and the other for 0.38, which splits the catalog into a loud half and a quiet half. The lofi list is also all acoustic (0.71–0.92 acousticness), while the pop list is all electronic (0.35 or below). *This makes sense: these are opposite listeners, and the system treats them that way.*
+
+**pop/happy vs. deep intense rock**: Both want loud music, so they share two songs (*Gym Hero*, *Concrete Verses*). The rock profile also asks for a dark sound (valence 0.35), so the cheerful songs (*Sunrise City*, *Rooftop Lights*) drop out and darker ones (*Iron Cathedral*, *Night Drive Loop*) come in. *This makes sense: energy decides which half of the catalog you're in, and valence decides happy vs. dark within it.*
+
+**high-energy pop vs. deep intense rock**: These two ask for almost the same energy (0.92 vs. 0.90) and both dislike acoustic music, so only genre, mood and happy-vs-dark separate them. The pop list is bright (*Sunrise City*, *Pulse Theory*, *Fuego Lento*) and the rock list is dark (*Storm Runner*, *Iron Cathedral*, *Night Drive Loop*). *Mostly valid, except that *Gym Hero* is #2 in both lists.* It matches "pop" for one profile and "intense" for the other.
+
+**high-energy pop vs. chill lofi**: Complete opposites with zero overlap, and both #1 songs score almost perfectly (6.29 and 6.44 out of 6.50). *This shows the system serves loud and quiet listeners equally well when their preferences are consistent.*
+
+**chill lofi vs. deep intense rock**: Zero overlap. *Library Rain* scores 6.44 for the lofi fan but only 1.65 for the rock fan, and *Storm Runner* is the reverse (6.35 for the rock fan, 1.82 for the lofi fan). *This is the clearest sign the scoring works: every feature points in opposite directions, so the scores do too.*
+
+**pop/happy vs. conflict: labels vs. numbers**: Same labels (pop, happy), but the second profile asks for very calm, dark music. *Sunrise City* stays #1 because of its labels. Then quiet, sad songs (*Winter Sonata No. 3*, *Empty Train Home*) take #2–3, followed by more upbeat pop. *The result is half one list and half the other, and it doesn't serve either listener well. It shows that labels (+3.0) outweigh the energy rule (max +2.0).*
+
+**deep intense rock vs. conflict: high-energy sad**: Both ask for loud, dark music, and 4 of their 5 songs are the same (*Iron Cathedral*, *Storm Runner*, *Night Drive Loop*, *Gym Hero*). The only difference is #1: "folk / sad" puts *Empty Train Home* on top, a quiet song with energy 0.26 when the user asked for 0.90. *Mathematically correct, but musically wrong: two text labels beat the actual sound.*
+
+**deep intense rock vs. acoustic metalhead**: Both are loud and dark. The metalhead gets *Iron Cathedral* at #1 (metal + angry). The only new song is *Banjo Breakdown* at #2, the one song in the catalog that is both high-energy and acoustic. *This makes sense for "loud but acoustic", even though the banjo song's cheerful mood doesn't fit a metal fan.*
+
+**pop/happy vs. ghost genre (k-pop)**: Same mood and energy, but "k-pop" isn't in the catalog. The top 2 are the same songs in the same order, but lower: *Sunrise City* loses its full 2-point genre bonus (4.96 → 2.96) and *Rooftop Lights* loses its 1-point partial bonus (3.92 → 2.92). *Gym Hero* drops out because without the pop bonus it has nothing left except energy. *This makes sense: with no genre to match, mood and energy decide.*
+
+**chill lofi vs. messy input**: The messy profile types `" LOFI "` and `"Chill"` and leaves out valence and acoustic preference. After the bug fix, it gives the same top 5 in the same order, just with a lower maximum (5.0 instead of 6.5). *This shows the fix works: capitals and extra spaces no longer change the results.*
+
+**high-energy pop vs. out-of-range values**: Both want loud, electronic music, but the out-of-range profile asks for impossible values (energy 1.5, valence −0.5). Its #1 (*Pulse Theory*, an edm/euphoric match) still makes sense, but scores collapse to 0.68–1.23 for #2–5 because no song can be close to an impossible target. *The system doesn't crash or warn. It just quietly gives weaker results, which a real app should catch.*
+
+**any profile vs. empty profile**: With no preferences, every song scores 0, so the list is simply alphabetical (*Banjo Breakdown*, *Coffee Shop Stories*, …). *This confirms that every ranking in the other profiles comes entirely from the user's preferences. With no preferences, the system has nothing to go on, so it shouldn't present this list as a recommendation.*
+
 ### Standard profiles
 
 #### high-energy pop
