@@ -83,23 +83,23 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     reasons: List[str] = []
 
     # Rule 1: genre (+2.0 exact, +1.0 partial such as "pop" vs "indie pop")
-    favorite_genre = user_prefs.get("favorite_genre")
+    # Normalize text preferences so " LOFI " matches "lofi".
+    favorite_genre = (user_prefs.get("favorite_genre") or "").strip().lower()
     if favorite_genre:
         song_genre = song["genre"].lower()
-        favorite_genre = favorite_genre.lower()
         if song_genre == favorite_genre:
             score += GENRE_WEIGHT
             reasons.append(f"genre match: {song['genre']} (+{GENRE_WEIGHT:.1f})")
         elif set(song_genre.split()) & set(favorite_genre.split()):
             score += PARTIAL_GENRE_WEIGHT
             reasons.append(
-                f"partial genre match: {song['genre']} ~ {user_prefs['favorite_genre']} "
+                f"partial genre match: {song['genre']} ~ {favorite_genre} "
                 f"(+{PARTIAL_GENRE_WEIGHT:.1f})"
             )
 
     # Rule 2: mood (+1.0 exact)
-    favorite_mood = user_prefs.get("favorite_mood")
-    if favorite_mood and song["mood"].lower() == favorite_mood.lower():
+    favorite_mood = (user_prefs.get("favorite_mood") or "").strip().lower()
+    if favorite_mood and song["mood"].lower() == favorite_mood:
         score += MOOD_WEIGHT
         reasons.append(f"mood match: {song['mood']} (+{MOOD_WEIGHT:.1f})")
 
