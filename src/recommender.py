@@ -1,6 +1,6 @@
 import csv
 from typing import List, Dict, Tuple, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 # Columns that must be converted from CSV text to numbers so we can do math with them.
 INT_FIELDS = ("id",)
@@ -47,6 +47,7 @@ class UserProfile:
     favorite_mood: str
     target_energy: float
     likes_acoustic: bool
+    target_valence: Optional[float] = None  # optional: skipped in scoring when None
 
 class Recommender:
     """
@@ -54,15 +55,26 @@ class Recommender:
     Required by tests/test_recommender.py
     """
     def __init__(self, songs: List[Song]):
+        """Store the catalog of Song objects to recommend from."""
         self.songs = songs
 
+    @staticmethod
+    def _prefs(user: UserProfile) -> Dict:
+        """Convert a UserProfile into the user_prefs dict used by score_song (drops unset fields)."""
+        return {key: value for key, value in asdict(user).items() if value is not None}
+
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
-        # TODO: Implement recommendation logic
-        return self.songs[:k]
+        """Return the top k Song objects for this user, using the same ranking rule as recommend_songs."""
+        by_id = {song.id: song for song in self.songs}
+        ranked = recommend_songs(self._prefs(user), [asdict(song) for song in self.songs], k)
+        return [by_id[song_dict["id"]] for song_dict, _, _ in ranked]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
-        # TODO: Implement explanation logic
-        return "Explanation placeholder"
+        """Return a readable explanation listing the score and each rule that awarded points."""
+        score, reasons = score_song(self._prefs(user), asdict(song))
+        if not reasons:
+            return f"Score {score:.2f}: no preferences matched this song."
+        return f"Score {score:.2f}: " + "; ".join(reasons)
 
 def load_songs(csv_path: str) -> List[Dict]:
     """Read songs.csv into a list of dicts, converting id to int and audio features to float."""
