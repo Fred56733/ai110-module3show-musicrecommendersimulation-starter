@@ -65,13 +65,7 @@ class Recommender:
         return "Explanation placeholder"
 
 def load_songs(csv_path: str) -> List[Dict]:
-    """
-    Loads songs from a CSV file.
-    Required by src/main.py
-
-    Returns one dictionary per row. Text columns (title, artist, genre, mood)
-    stay strings; `id` becomes an int and the audio features become floats.
-    """
+    """Read songs.csv into a list of dicts, converting id to int and audio features to float."""
     songs = []
     with open(csv_path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -84,16 +78,7 @@ def load_songs(csv_path: str) -> List[Dict]:
     return songs
 
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
-    """
-    Scores a single song against user preferences.
-    Required by recommend_songs() and src/main.py
-
-    user_prefs keys (all optional; a missing preference skips its rule):
-        favorite_genre, favorite_mood, target_energy, target_valence, likes_acoustic
-
-    Returns (score, reasons), where reasons lists each rule that awarded points,
-    e.g. ["genre match: lofi (+2.0)", "energy 0.35 vs your 0.38 (+1.94)"].
-    """
+    """Score one song against user_prefs and return (score, reasons) listing each rule's points."""
     score = 0.0
     reasons: List[str] = []
 
@@ -144,17 +129,11 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     return score, reasons
 
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """
-    Functional implementation of the recommendation logic.
-    Required by src/main.py
-
-    Ranking rule: score every song, sort by score (highest first), break ties by
-    energy closeness and then title, and return the top k as
-    (song_dict, score, explanation) where explanation joins the reasons with "; ".
-    """
+    """Rank all songs by score (ties: energy closeness, then title) and return the top k with explanations."""
     target_energy = user_prefs.get("target_energy")
 
     def energy_tiebreak(song: Dict) -> float:
+        """Energy closeness used to break score ties (0.0 if the user set no energy target)."""
         return closeness(song["energy"], target_energy) if target_energy is not None else 0.0
 
     scored = []
