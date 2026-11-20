@@ -9,11 +9,15 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 
-from recommender import load_songs, recommend_songs
+try:
+    from src.recommender import load_songs, recommend_songs  # python -m src.main
+except ModuleNotFoundError:
+    from recommender import load_songs, recommend_songs  # python src/main.py
 
 
 def main() -> None:
-    songs = load_songs("data/songs.csv") 
+    songs = load_songs("data/songs.csv")
+    print(f"Loaded songs: {len(songs)}")
 
     # Taste profile: a late-night study listener who wants calm, warm, acoustic music.
     # Keys match the UserProfile fields in recommender.py.
