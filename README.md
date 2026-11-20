@@ -111,16 +111,46 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
-Paste a sample of your recommender's output here as a text block so a reader can see what it produces:
+Output of `python -m src.main` with the default **pop/happy** profile:
 
 ```
-# e.g.:
-# User profile: genre=indie, mood=chill, energy=low
-# Recommendations:
-#   1. ...
-#   2. ...
-#   3. ...
+Loaded songs: 20
+
+Profile: pop/happy
+  genre=pop | mood=happy | energy=0.80
+
+Top 5 recommendations
+================================================================
+#1  Sunrise City - Neon Echo                  Score: 4.96 / 5.00
+     pop, happy, energy 0.82
+     + genre match: pop (+2.0)
+     + mood match: happy (+1.0)
+     + energy 0.82 vs your 0.80 (+1.96)
+----------------------------------------------------------------
+#2  Rooftop Lights - Indigo Parade            Score: 3.92 / 5.00
+     indie pop, happy, energy 0.76
+     + partial genre match: indie pop ~ pop (+1.0)
+     + mood match: happy (+1.0)
+     + energy 0.76 vs your 0.80 (+1.92)
+----------------------------------------------------------------
+#3  Gym Hero - Max Pulse                      Score: 3.74 / 5.00
+     pop, intense, energy 0.93
+     + genre match: pop (+2.0)
+     + energy 0.93 vs your 0.80 (+1.74)
+----------------------------------------------------------------
+#4  Fuego Lento - Brisa Roja                  Score: 2.00 / 5.00
+     latin, playful, energy 0.80
+     + energy 0.80 vs your 0.80 (+2.00)
+----------------------------------------------------------------
+#5  Concrete Verses - Block Theory            Score: 1.96 / 5.00
+     hip-hop, confident, energy 0.78
+     + energy 0.78 vs your 0.80 (+1.96)
+----------------------------------------------------------------
 ```
+
+**Does this match expectations?** Yes. *Sunrise City* is the only song that matches pop, happy and the target energy, so it ranks first with nearly a perfect score. *Rooftop Lights* (indie pop, happy) edges out *Gym Hero* (pop, but "intense") because both earn +2.0 from labels (partial genre + mood vs. exact genre), so energy decides: 0.76 is closer to the 0.80 target than 0.93. Positions #4 and #5 have no genre or mood match and are chosen only for energy, which shows the "rare genre" bias noted above: after the 3 pop-like songs, the catalog has nothing else pop or happy to offer.
+
+Another profile can be run by name, e.g. `python -m src.main "chill lofi"`.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
 
